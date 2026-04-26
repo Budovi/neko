@@ -158,7 +158,7 @@ function build_image() {
 
   if [ -z "$USE_BUILDX" ] || [ "$USE_BUILDX" != "1" ]; then
     # if buildx is not available, use docker build
-    docker build \
+    podman build \
       --platform $PLATFORM \
       $NO_CACHE \
       -t $APPLICATION_IMAGE \
@@ -169,7 +169,7 @@ function build_image() {
       # do not tag if the tag is the same as the image tag
       if [ "$T" != "$APPLICATION_IMAGE" ]; then
         log "Tagging $APPLICATION_IMAGE as $T"
-        docker tag "$APPLICATION_IMAGE" "$T"
+        podman tag "$APPLICATION_IMAGE" "$T"
       fi
 
       # if push is enabled, push the image to the registry
@@ -318,8 +318,9 @@ if [ ! -z "$FLAVOR" ] && [ -f "runtime/Dockerfile.$FLAVOR" ]; then
 fi
 
 log "Building base image: $BASE_IMAGE"
-docker run --rm -i \
-  -v "$(pwd)":/src \
+podman run --rm -i \
+  -v "$(pwd)":/src:Z \
+  --userns=keep-id \
   -e "RUNTIME_DOCKERFILE=$RUNTIME_DOCKERFILE" \
   --workdir /src \
   --entrypoint go \
